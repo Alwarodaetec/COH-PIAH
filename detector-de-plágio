@@ -1,0 +1,173 @@
+import re
+
+def le_assinatura():
+    '''A funcao le os valores dos tracos linguisticos do modelo e devolve uma assinatura a ser comparada com os textos fornecidos'''
+    print("Informe a assinatura típica de um aluno infectado:")
+    tam_m_palavra = float(input("Entre o tamanho médio de palavra:"))
+    ty_to = float(input("Entre a relação Type-Token:"))
+    ra_ha_lego = float(input("Entre a Razão Hapax Legomana:"))
+    tam_medio_sentença= float(input("Entre o tamanho médio de sentença:"))
+    complexidade_de_sentença = float(input("Entre a complexidade média da sentença:"))
+    tam_medio_frase = float(input("Entre o tamanho medio de frase:"))
+
+    return[tam_m_palavra , ty_to , ra_ha_lego , tam_medio_sentença , complexidade_de_sentença , tam_medio_frase]
+
+
+def le_textos():
+    '''A funcao le todos os textos a serem comparados e devolve uma lista contendo cada texto como um elemento'''
+    i = 1
+    textos = []
+    texto = input("Digite o texto " + str(i) +" (aperte enter para sair):")
+    while texto:
+        textos.append(texto)
+        i += 1
+        texto = input("Digite o texto " + str(i) +" (aperte enter para sair):")
+
+    return textos
+
+def separa_sentencas(texto):
+    '''A funcao recebe um texto e devolve uma lista das sentencas dentro do texto'''
+    sentencas = re.split(r'[.!?]+', texto)
+    if sentencas[-1] == '':
+        del sentencas[-1]
+    return sentencas
+
+def separa_frases(sentenca):
+    '''A funcao recebe uma sentenca e devolve uma lista das frases dentro da sentenca'''
+    return re.split(r'[,:;]+', sentenca)
+
+def separa_palavras(frase):
+    '''A funcao recebe uma frase e devolve uma lista das palavras dentro da frase'''
+    return frase.split()
+
+def n_palavras_unicas(lista_palavras):
+    '''Essa funcao recebe uma lista de palavras e devolve o numero de palavras que aparecem uma unica vez'''
+    freq = dict()
+    unicas = 0
+    for palavra in lista_palavras:
+        p = palavra.lower()
+        if p in freq:
+            if freq[p] == 1:
+                unicas -= 1
+            freq[p] += 1
+        else:
+            freq[p] = 1
+            unicas += 1
+
+    return unicas
+
+def n_palavras_diferentes(lista_palavras):
+    '''Essa funcao recebe uma lista de palavras e devolve o numero de palavras diferentes utilizadas'''
+    freq = dict()
+    for palavra in lista_palavras:
+        p = palavra.lower()
+        if p in freq:
+            freq[p] += 1
+        else:
+            freq[p] = 1
+
+    return len(freq)
+
+def compara_assinatura(as_a, as_b):
+    '''IMPLEMENTAR. Essa funcao recebe duas assinaturas de texto e deve devolver o grau de similaridade nas assinaturas.
+    
+    Objetivo: Comparar duas assinaturas e calcular o grau de similaridade entre elas.
+Como fazer: Para cada um dos seis traços linguísticos, calcular a diferença entre os valores da assinatura as_a e da assinatura as_b, pegar o valor absoluto dessas diferenças (sem sinal negativo), somar todas essas diferenças e dividir por seis. A função deve retornar esse valor, que representa o grau de similaridade entre as duas assinaturas.'''
+
+    soma_as=0.0
+    for i in range(len(as_a)):
+        divergencias = abs(as_a[i] - as_b[i])
+        soma_as += divergencias
+    semelhanca = soma_as / len(as_a)
+    return semelhanca
+    
+    
+        #pass
+def lista_frases(texto):
+    lista = []
+    for i in separa_sentencas(texto):
+        lista.extend(separa_frases(i))
+    return lista
+
+def lista_palavras(texto):
+    lista = []
+    for i in lista_frases(texto):
+        lista.extend(separa_palavras(i))
+    return lista
+
+def tamanho_medio_palavra(texto):
+    tam_medio_palavra=(len(texto)- texto.count(" ") - texto.count(",") - texto.count(";") - texto.count(":") - texto.count(".") - texto.count("!") - texto.count("?")) / len(separa_palavras(texto))
+    return tam_medio_palavra
+
+def type_token(texto):
+    num_palavras_diferentes = n_palavras_diferentes(lista_palavras(texto))
+    total_palavras = separa_palavras(texto)
+    soma_palavras = sum(len(palavra) for palavra in total_palavras)
+    type_token = num_palavras_diferentes / len(separa_palavras(texto))
+    return type_token
+
+def raz_hap_lego(texto):
+    razao = n_palavras_unicas(lista_palavras(texto)) / len(lista_palavras(texto))
+    return razao
+
+def t_medio_sen(sentencas):
+    caracteres_sentenca = 0
+    for sentenca in sentencas:
+        caracteres_sentenca = caracteres_sentenca + len(sentenca)
+    return caracteres_sentenca / len (sentencas)
+
+def t_medio_frases(frases):
+    t_frases = 0
+    for frase in frases:
+        t_frases = t_frases + len(frase)
+    return t_frases / len(frases)
+
+def calcula_assinatura(texto):
+    '''IMPLEMENTAR. Essa funcao recebe um texto e deve devolver a assinatura do texto.'''
+    tam_m_palavra=tamanho_medio_palavra (texto)
+    ty_to = type_token(texto) 
+    ra_ha_lego = raz_hap_lego(texto) 
+    sentencas = separa_sentencas(texto)
+    tam_medio_sentença = t_medio_sen(sentencas) 
+    complexidade_de_sentença = len(lista_frases(texto)) / len(separa_sentencas(texto)) 
+    frases = lista_frases(texto)
+    tam_medio_frase = t_medio_frases(frases) 
+    return[tam_m_palavra , ty_to , ra_ha_lego , tam_medio_sentença , complexidade_de_sentença , tam_medio_frase]
+
+def avalia_textos(textos, ass_cp):
+    '''IMPLEMENTAR. Essa funcao recebe uma lista de textos e uma assinatura ass_cp e deve devolver o numero (1 a n) do texto com maior probabilidade de ter sido infectado por COH-PIAH.
+    
+    Calcular a assinatura de cada texto na lista textos usando a função calcula_assinatura.
+Comparar cada assinatura calculada com a assinatura fornecida ass_cp usando a função compara_assinatura.
+Determinar qual texto tem a assinatura mais parecida (menor grau de similaridade) com ass_cp.
+A função deve retornar o índice do texto que tem a assinatura mais parecida com a assinatura do aluno infectado.'''
+    similiaridades = []
+    
+    for i,texto in enumerate(textos):
+        assinatura = calcula_assinatura(texto)
+        semelhanca = compara_assinatura(assinatura, ass_cp)
+        similiaridades.append((semelhanca, i+1))
+    
+    similiaridades.sort(key=lambda x: x[0])
+    
+    return similiaridades[0][1]
+        
+    
+def main():
+    print("Bem-vindo ao detector automático de COH-PIAH!")
+    print("Selecione o que deseja executar")
+    x = int(input("Digite 1 para calcular a assinatura de um texto, 2 para avaliar um texto com uma assinatura de referência ou 3 para avaliar diferentes textos:" ))
+    if x == 1:
+        texto = input("Digite o texto para que seja calculada sua assinatura: ")
+        print(calcula_assinatura(texto))
+    elif x == 2:
+        referencia = le_assinatura()
+        textos = le_textos()
+        resultado = avalia_textos(textos, referencia)
+        print(f"O autor do texto {resultado} está infectado com COH-PIAH")
+    else:
+        print("Valor inserido incorreto!")
+        main()
+    
+if __name__ == '__main__':
+    main()
